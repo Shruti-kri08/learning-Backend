@@ -14,10 +14,10 @@ cloudinary.config({
     api_secret:process.env.API_SECRET
 })
 
+//Add new contact API
 router.post('/addContact', async (req, res) => {
     try {
         //  console.log(req);
-
         const token = req.headers.authorization.split(" ")[1]
         const tokenData = jwt.verify(token, process.env.SECRET_KEY)
 
@@ -33,7 +33,6 @@ router.post('/addContact', async (req, res) => {
             image:uploadResult.public_id,
             url:uploadResult.secure_url
         })
-
         const saved = await newContact.save()
         console.log("saved data: ", saved);
 
@@ -47,9 +46,7 @@ router.post('/addContact', async (req, res) => {
             msg: "Add new contact failed"
         })
         console.log(err);
-
     }
-
 })
 
 //get contact
@@ -71,6 +68,58 @@ router.get('/getContact', async (req, res) => {
         console.log(err);
 
     }
+})
+
+
+router.delete('/byId/:id',async(req,res)=>{
+try{
+            const token=req.headers.authorization.split(" ")[1]
+            const tokenData=await jwt.verify(token,process.env.SECRET_KEY)
+            const deletedContact=await Contact.findByIdAndDelete(req.params.id)
+            console.log("deletedContact : ",deletedContact);
+             if(deletedContact==null)
+            {
+                return res.status(200).json({msg:"No contacts"})
+            }
+            res.status(200).json({
+                msg:"data deleted"
+            })
+
+            
+
+}   
+catch(err) {
+        res.status(500).json({
+            error: err
+        })
+}
+
+})
+
+
+router.delete('/byUserId/:userId',async(req,res)=>{
+try{
+            const token=req.headers.authorization.split(" ")[1]
+            const tokenData=await jwt.verify(token,process.env.SECRET_KEY)
+            const deletedContact=await Contact.findmanyAndDelete(req.body.userId)
+            console.log("deletedContact : ",deletedContact);
+            if(deletedContact==null)
+            {
+                return res.status(200).json({msg:"No contacts"})
+            }
+            res.status(200).json({
+                msg:"data deleted"
+            })
+
+            
+
+}   
+catch(err) {
+        res.status(500).json({
+            error: err
+        })
+}
+
 })
 
 module.exports = router
