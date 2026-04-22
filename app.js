@@ -3,6 +3,10 @@ const express=require('express')
 const app=express()
 const mongoose=require('mongoose')
 const bodyParser=require('body-parser')
+const cloudinary=require('cloudinary').v2
+const fileUpload=require('express-fileupload')          //It helps to recive file(img,vedio file) form frontend.....
+
+
 
 
  //Routes
@@ -31,12 +35,15 @@ const contactRoutes=require('./Routes/contact')
 //use body-parser
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded())
+app.use(fileUpload({
+    useTempFiles:true,         //store files for temperory in backend 
+    tempFileDir:'/temp/'
+}))
 
 
 //Use Routes
 app.use('/user',userRoutes)
 app.use('/contact',contactRoutes)
-
 
 
 module.exports=app
