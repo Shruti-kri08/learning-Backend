@@ -49,12 +49,11 @@ router.post('/addContact', async (req, res) => {
     }
 })
 
-//get contact
 router.get('/getContact', async (req, res) => {
     try {
         const token = req.headers.authorization.split(" ")[1]
         const tokenData = jwt.verify(token, process.env.SECRET_KEY)
-        const allContacts = await Contact.find({ userId: tokenData.userId }).select("_id fullName email phone  gender userId url")
+        const allContacts = await Contact.find({ userId: tokenData.userId }).select("_id fullname email phone  gender userId url")
         res.status(200).json({
             allContacts: allContacts
         })
@@ -70,30 +69,47 @@ router.get('/getContact', async (req, res) => {
     }
 })
 
+// router.delete('/byId/:id',async(req,res)=>{
+// try{
+//             const token=req.headers.authorization.split(" ")[1]
+//             const tokenData=await jwt.verify(token,process.env.SECRET_KEY)
+//             const deletedContact=await Contact.findByIdAndDelete(req.params.id)
+//             console.log("deletedContact : ",deletedContact);
+//              if(deletedContact==null)
+//             {
+//                 return res.status(200).json({msg:"No contacts"})
+//             }
+//             res.status(200).json({
+//                 msg:"data deleted"
+//             })
+// }   
+// catch(err) {
+//         res.status(500).json({
+//             error: err
+//         })
+// }
+// })
 
-router.delete('/byId/:id',async(req,res)=>{
-try{
+
+router.delete('/:id',async(req,res)=>{
+    try{
             const token=req.headers.authorization.split(" ")[1]
             const tokenData=await jwt.verify(token,process.env.SECRET_KEY)
-            const deletedContact=await Contact.findByIdAndDelete(req.params.id)
-            console.log("deletedContact : ",deletedContact);
-             if(deletedContact==null)
-            {
-                return res.status(200).json({msg:"No contacts"})
+            const contact=await Contact.findById(req.params.id)   
+            if(contact.userId!=tokenData.userId){
+                return res.status(500).json({error:'Invalid User'})
             }
-            res.status(200).json({
-                msg:"data deleted"
-            })
-
-            
-
-}   
-catch(err) {
-        res.status(500).json({
+            await cloudinary.uploader.destroy(contact.image)
+            await Contact.deleteOne({_id:req.params.id})
+            res.status(200).json({msg:"data deleted"})
+    }
+    catch(err){
+         res.status(500).json({
             error: err
-        })
-}
 
+        })
+
+    }
 })
 
 
@@ -101,7 +117,7 @@ router.delete('/byUserId/:userId',async(req,res)=>{
 try{
             const token=req.headers.authorization.split(" ")[1]
             const tokenData=await jwt.verify(token,process.env.SECRET_KEY)
-            const deletedContact=await Contact.findmanyAndDelete(req.body.userId)
+            const deletedContact=await Contact.findmanyAndDelete(req.params.userId)
             console.log("deletedContact : ",deletedContact);
             if(deletedContact==null)
             {
@@ -110,9 +126,6 @@ try{
             res.status(200).json({
                 msg:"data deleted"
             })
-
-            
-
 }   
 catch(err) {
         res.status(500).json({
@@ -121,5 +134,8 @@ catch(err) {
 }
 
 })
+
+
+
 
 module.exports = router
